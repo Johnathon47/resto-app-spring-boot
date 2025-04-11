@@ -1,0 +1,230 @@
+openapi: "3.0.2"
+info:
+  title: Resto Management
+  version: "1.0"
+servers:
+  - url: https://api.server.test/v1
+
+paths:
+  /ingredients:
+    get:
+      tags:
+        - Ingredient
+      summary: Récupérer tous les ingrédients
+      parameters:
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Liste des ingrédients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ingredient'
+
+  /ingredient:
+    post:
+      tags:
+        - Ingredient
+      summary: Insérer ou mettre à jour une liste d'ingrédients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Ingredient'
+      responses:
+        '200':
+          description: Liste insérée ou mise à jour
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ingredient'
+
+  /ingredient/{id}:
+    get:
+      tags:
+        - Ingredient
+      summary: Récupérer un ingrédient par ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ingrédient trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        '404':
+          description: Ingrédient non trouvé
+
+    delete:
+      tags:
+        - Ingredient
+      summary: Supprimer un ingrédient par ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ingrédient supprimé
+        '404':
+          description: Ingrédient non trouvé
+
+  /dishes:
+    get:
+      tags:
+        - Dish
+      summary: Récupérer tous les plats
+      parameters:
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Liste des plats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+
+  /dish:
+    post:
+      tags:
+        - Dish
+      summary: Créer ou mettre à jour des plats
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Dish'
+      responses:
+        '200':
+          description: Plats insérés ou mis à jour
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+
+  /dish/{id}:
+    get:
+      tags:
+        - Dish
+      summary: Récupérer un plat par ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Plat trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '404':
+          description: Plat non trouvé
+
+    delete:
+      tags:
+        - Dish
+      summary: Supprimer un plat par ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Plat supprimé
+        '404':
+          description: Plat non trouvé
+
+
+components:
+  schemas:
+    Ingredient:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        unitPrice:
+          type: number
+          format: double
+        unit:
+          $ref: '#/components/schemas/Unit'
+        updateDateTime:
+          type: string
+          format: date-time
+
+    Unit:
+      type: string
+      enum:
+        - G
+        - L
+        - U
+    Dish:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        unitPrice:
+          type: number
+          format: double
+        ingredientList:
+          type: array
+          items:
+            $ref: '#/components/schemas/DishIngredient'
+
+    DishIngredient:
+      type: object
+      properties:
+        ingredient:
+          $ref: '#/components/schemas/Ingredient'
+        requiredQuantity:
+          type: number
+          format: double
+        unit:
+          $ref: '#/components/schemas/Unit'

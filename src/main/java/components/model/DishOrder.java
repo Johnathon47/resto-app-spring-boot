@@ -1,10 +1,8 @@
 package components.model;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import components.model.dto.DishDTO;
 
-import java.util.Objects;
 
 public class DishOrder {
     private Long id;

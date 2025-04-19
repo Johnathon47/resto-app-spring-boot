@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-public class DishOrderApiController {
+public class DishOrderRestController {
     private DishOrderService dishOrderService;
 
     @Autowired
-    public DishOrderApiController(DishOrderService dishOrderService) {
+    public DishOrderRestController(DishOrderService dishOrderService) {
         this.dishOrderService = dishOrderService;
     }
 

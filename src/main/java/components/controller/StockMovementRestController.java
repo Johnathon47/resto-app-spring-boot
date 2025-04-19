@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-public class StockMovementApiController {
+public class StockMovementRestController {
     private final StockMovementService movementService;
 
     @Autowired
-    public StockMovementApiController(StockMovementService stockMovementService) {
+    public StockMovementRestController(StockMovementService stockMovementService) {
         this.movementService = stockMovementService;
     }
 

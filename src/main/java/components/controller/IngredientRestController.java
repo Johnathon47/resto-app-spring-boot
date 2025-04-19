@@ -18,11 +18,11 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
-public class IngredientApiController {
+public class IngredientRestController {
     private IngredientService ingredientService;
 
     @Autowired
-    public IngredientApiController(IngredientService ingredientService) {
+    public IngredientRestController(IngredientService ingredientService) {
         this.ingredientService = ingredientService;
     }
 

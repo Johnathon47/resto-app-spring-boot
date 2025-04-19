@@ -1,30 +1,23 @@
-openapi: "3.0.2"
+openapi: 3.0.3
 info:
-  title: Resto Management
-  version: "1.0"
+  title: Restaurant Management API - 2025 [J]
+  description: Restaurant Management API - 2025 [J]
+  version: 1.0.0
+
 servers:
-  - url: https://api.server.test/v1
+  - url: https://localhost:8080
 
 paths:
   /ingredients:
     get:
-      tags:
-        - Ingredient
-      summary: Récupérer tous les ingrédients
+      summary: Get list of ingredients
+      description: List of ingredients
       parameters:
-        - in: query
-          name: offset
-          schema:
-            type: integer
-            default: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 10
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
       responses:
-        '200':
-          description: Liste des ingrédients
+        200:
+          description: List of ingredients
           content:
             application/json:
               schema:
@@ -34,9 +27,7 @@ paths:
 
   /ingredient:
     post:
-      tags:
-        - Ingredient
-      summary: Insérer ou mettre à jour une liste d'ingrédients
+      summary: Insert or update ingredients list
       requestBody:
         required: true
         content:
@@ -46,8 +37,8 @@ paths:
               items:
                 $ref: '#/components/schemas/Ingredient'
       responses:
-        '200':
-          description: Liste insérée ou mise à jour
+        200:
+          description: Ingredients inserted or updated
           content:
             application/json:
               schema:
@@ -57,60 +48,80 @@ paths:
 
   /ingredient/{id}:
     get:
-      tags:
-        - Ingredient
-      summary: Récupérer un ingrédient par ID
+      summary: Get ingredient by ID
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/IngredientIdentifier'
       responses:
-        '200':
-          description: Ingrédient trouvé
+        200:
+          description: Ingredient found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Ingredient'
-        '404':
-          description: Ingrédient non trouvé
+        404:
+          description: Ingredient not found
 
     delete:
-      tags:
-        - Ingredient
-      summary: Supprimer un ingrédient par ID
+      summary: Delete ingredient by ID
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/IngredientIdentifier'
       responses:
-        '200':
-          description: Ingrédient supprimé
-        '404':
-          description: Ingrédient non trouvé
+        200:
+          description: Ingredient deleted
+        404:
+          description: Ingredient not found
+
+  /ingredients/{id}/prices:
+    put:
+      summary: Add new prices to a specific ingredient
+      parameters:
+        - $ref: '#/components/parameters/IngredientIdentifier'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Price'
+      responses:
+        200:
+          description: Updated ingredient with new prices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+
+  /ingredients/{id}/stockMovements:
+    put:
+      summary: Add stock movements to a specific ingredient
+      parameters:
+        - $ref: '#/components/parameters/IngredientIdentifier'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/StockMovement'
+      responses:
+        200:
+          description: Updated ingredient with new stock movements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
 
   /dishes:
     get:
-      tags:
-        - Dish
-      summary: Récupérer tous les plats
+      summary: Get list of dishes
       parameters:
-        - in: query
-          name: offset
-          schema:
-            type: integer
-            default: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 10
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
       responses:
-        '200':
-          description: Liste des plats
+        200:
+          description: List of dishes
           content:
             application/json:
               schema:
@@ -120,9 +131,7 @@ paths:
 
   /dish:
     post:
-      tags:
-        - Dish
-      summary: Créer ou mettre à jour des plats
+      summary: Create or update dishes
       requestBody:
         required: true
         content:
@@ -132,8 +141,8 @@ paths:
               items:
                 $ref: '#/components/schemas/Dish'
       responses:
-        '200':
-          description: Plats insérés ou mis à jour
+        200:
+          description: Dishes inserted or updated
           content:
             application/json:
               schema:
@@ -143,43 +152,63 @@ paths:
 
   /dish/{id}:
     get:
-      tags:
-        - Dish
-      summary: Récupérer un plat par ID
+      summary: Get dish by ID
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/DishIdentifier'
       responses:
-        '200':
-          description: Plat trouvé
+        200:
+          description: Dish found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Dish'
-        '404':
-          description: Plat non trouvé
+        404:
+          description: Dish not found
 
     delete:
-      tags:
-        - Dish
-      summary: Supprimer un plat par ID
+      summary: Delete dish by ID
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/DishIdentifier'
       responses:
-        '200':
-          description: Plat supprimé
-        '404':
-          description: Plat non trouvé
-
+        200:
+          description: Dish deleted
+        404:
+          description: Dish not found
 
 components:
+  parameters:
+    Page:
+      in: query
+      name: offset
+      schema:
+        type: integer
+        default: 1
+      description: Pagination offset
+
+    PageSize:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        default: 10
+      description: Pagination limit
+
+    IngredientIdentifier:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      description: Ingredient ID
+
+    DishIdentifier:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      description: Dish ID
+
   schemas:
     Ingredient:
       type: object
@@ -188,14 +217,24 @@ components:
           type: integer
         name:
           type: string
-        unitPrice:
+        prices:
+          $ref: '#/components/schemas/Price'
+        stockMovements:
+          $ref: '#/components/schemas/StockMovement'
+        availableQuantity:
           type: number
           format: double
-        unit:
-          $ref: '#/components/schemas/Unit'
-        updateDateTime:
+        actualPrice:
+          type: number
+          format: double
+
+    IngredientDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
           type: string
-          format: date-time
 
     Unit:
       type: string
@@ -203,6 +242,7 @@ components:
         - G
         - L
         - U
+
     Dish:
       type: object
       properties:
@@ -218,13 +258,104 @@ components:
           items:
             $ref: '#/components/schemas/DishIngredient'
 
+    DishDTO:
+      type: object
+      properties:
+        dishId:
+          type: integer
+        dishName:
+          type: string
+        quantitySold:
+          type: number
+          format: double
+
     DishIngredient:
       type: object
       properties:
         ingredient:
-          $ref: '#/components/schemas/Ingredient'
+          $ref: '#/components/schemas/IngredientDTO'
         requiredQuantity:
           type: number
           format: double
         unit:
           $ref: '#/components/schemas/Unit'
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        tableNumber:
+          $ref: '#/components/schemas/TableNumber'
+        amountPaid:
+          type: number
+          format: double
+        amountDue:
+          type: number
+          format: double
+        dishes:
+          $ref: '#/components/schemas/DishOrder'
+
+    DishOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        quantityOrdered:
+          type: number
+          format: double
+        actualOrderStatus:
+          $ref: '#/components/schemas/OrderStatus'
+
+    Price:
+      type: object
+      properties:
+        id:
+          type: integer
+        price:
+          type: number
+          format: double
+        unit:
+          $ref: '#/components/schemas/Unit'
+        updateDateTime:
+          type: string
+          format: date-time
+
+    StockMovementType:
+      type: string
+      enum:
+        - ENTRY
+        - EXIT
+
+    StockMovement:
+      type: object
+      properties:
+        id:
+          type: integer
+        quantity:
+          type: number
+          format: double
+        unit:
+          $ref: '#/components/schemas/Unit'
+        type:
+          $ref: '#/components/schemas/StockMovementType'
+        movementDate:
+          type: string
+          format: date-time
+
+    TableNumber:
+      type: string
+      enum:
+        - TABLE1
+        - TABLE2
+        - TABLE3
+
+    OrderStatus:
+      type: string
+      enum:
+        - CREATED
+        - IN_PROGRESS
+        - COMPLETED
+        - CANCELLED

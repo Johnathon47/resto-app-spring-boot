@@ -1,9 +1,6 @@
 package components.repository.dao;
 
-import components.model.Dish;
-import components.model.DishIngredient;
-import components.model.Ingredient;
-import components.model.Unit;
+import components.model.*;
 import components.repository.crudOperation.CrudOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,10 +19,12 @@ import java.util.Map;
 @Repository
 public class DishDao implements CrudOperation<Dish> {
     private final JdbcTemplate jdbcTemplate;
+    private final IngredientPriceDao ingredientPriceDao;
 
     @Autowired // Pour que Spring injecte automatiquement la connexion
-    public DishDao(JdbcTemplate jdbcTemplate) {
+    public DishDao(JdbcTemplate jdbcTemplate, IngredientPriceDao ingredientPriceDao) {
         this.jdbcTemplate = jdbcTemplate;
+        this.ingredientPriceDao = ingredientPriceDao;
     }
 
     private void updateUnitPrice(Dish dish, Connection connection) throws SQLException {
@@ -52,8 +51,8 @@ public class DishDao implements CrudOperation<Dish> {
 
         String sql =
                 """
-                    SELECT dish.id, dish.name AS named, dish_ingredient.required_quantity, dish_ingredient.unit,
-                    ingredient.name AS ingredientName, dish.unit_price, ingredient.unit_price AS up
+                    SELECT dish.id AS dish_id, dish.name AS dish_name, dish_ingredient.required_quantity, dish_ingredient.unit,
+                           ingredient.id AS id_ingredient, ingredient.name AS ingredient_name
                     FROM dish
                     INNER JOIN dish_ingredient ON dish.id = dish_ingredient.id_dish
                     INNER JOIN ingredient ON dish_ingredient.id_ingredient = ingredient.id
@@ -68,26 +67,28 @@ public class DishDao implements CrudOperation<Dish> {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    Long dishId = resultSet.getLong("id");
+                    Long dishId = resultSet.getLong("dish_id");
                     Dish dish = dishMap.get(dishId);
                     if (dish == null) {
                         dish = new Dish();
                         dish.setId(dishId);
-                        dish.setName(resultSet.getString("named"));
+                        dish.setName(resultSet.getString("dish_name"));
                         dish.setIngredientList(new ArrayList<>());
                         dishMap.put(dishId, dish);
                         dishes.add(dish);
                     }
-                    // Ajouter l'ingrédient au plat
-                    String ingredientName = resultSet.getString("ingredientName");
-                    BigDecimal requiredQuantity = resultSet.getBigDecimal("required_quantity");
-                    String unit = resultSet.getString("unit");
-                    BigDecimal unitPrice = resultSet.getBigDecimal("up");
 
                     Ingredient ingredient = new Ingredient();
-                    ingredient.setName(ingredientName);
-                    ingredient.setUnitPrice(unitPrice);  // Set the unit price from database
-                    ingredient.setUnit(Unit.valueOf(unit));
+                    Long ingredientId = resultSet.getLong("id_ingredient");
+                    ingredient.setId(ingredientId);
+                    ingredient.setName(resultSet.getString("ingredient_name"));
+
+                    // Historique des prix
+                    List<IngredientPrice> priceHistory = ingredientPriceDao.findAllForIngredient(ingredientId);
+                    ingredient.setPriceHistory(priceHistory);
+
+                    BigDecimal requiredQuantity = resultSet.getBigDecimal("required_quantity");
+                    String unit = resultSet.getString("unit");
 
                     DishIngredient dishIngredient = new DishIngredient(ingredient, requiredQuantity, Unit.valueOf(unit));
                     dish.getIngredientList().add(dishIngredient);

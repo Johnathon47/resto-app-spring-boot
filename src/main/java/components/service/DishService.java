@@ -17,6 +17,6 @@ public class DishService {
     }
 
     public List<Dish> getAllDish() {
-        return dishDao.getAll(0,5);
+        return dishDao.getAll(0,4);
     }
 }

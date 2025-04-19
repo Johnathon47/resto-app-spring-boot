@@ -1,14 +1,9 @@
 package components.model;
 
-import lombok.*;
 
 import java.math.BigDecimal;
 
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-public class DishIngredient extends Ingredient{
+public class DishIngredient {
     private Ingredient ingredient;
     private BigDecimal requiredQuantity;
     private Unit unit;
@@ -21,12 +16,28 @@ public class DishIngredient extends Ingredient{
         this.unit = unit;
     }
 
-    @Override
-    public String toString() {
-        return "DishIngredient{" +
-                "name=" + ingredient.getName() +
-                ", requiredQuantity=" + requiredQuantity +
-                ", unit=" + unit + '\'' +
-                '}';
+    public Ingredient getIngredient() {
+        return ingredient;
     }
+
+    public void setIngredient(Ingredient ingredient) {
+        this.ingredient = ingredient;
+    }
+
+    public BigDecimal getRequiredQuantity() {
+        return requiredQuantity;
+    }
+
+    public void setRequiredQuantity(BigDecimal requiredQuantity) {
+        this.requiredQuantity = requiredQuantity;
+    }
+
+    public Unit getUnit() {
+        return unit;
+    }
+
+    public void setUnit(Unit unit) {
+        this.unit = unit;
+    }
+
 }

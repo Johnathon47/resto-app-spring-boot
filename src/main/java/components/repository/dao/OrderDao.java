@@ -1,9 +1,9 @@
 package components.repository.dao;
 
-import components.model.Dish;
 import components.model.DishOrder;
 import components.model.Order;
 import components.model.TableNumber;
+import components.model.dto.DishDTO;
 import components.repository.crudOperation.CrudOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,7 +32,7 @@ public class OrderDao implements CrudOperation<Order> {
     public List<Order> getAll(int offset, int limit) {
         List<Order> orders = new ArrayList<>();
         String getOrdersQuery = """
-        SELECT orderid, "order".tablenumber, dish.name, quantitytoorder, price, 
+        SELECT orderid, "order".tablenumber,dish.id AS dish_id, dish.name, quantitytoorder, price, 
                "order".amountpaid, "order".amountdue, "order".customerarrivaldatetime
         FROM dish_order
         INNER JOIN dish ON dish_order.dish_id = dish.id
@@ -69,12 +69,13 @@ public class OrderDao implements CrudOperation<Order> {
                 Order order = orderMap.get(orderId);
 
                 // Crée un DishOrder et l'ajoute à l'ordre
-                Dish dish = new Dish(); // Suppose que tu as une classe Dish
-                dish.setName(rs.getString("name"));
+                DishDTO dishDTO = new DishDTO(); // Suppose que tu as une classe Dish
+                dishDTO.setId(rs.getLong("dish_id"));
+                dishDTO.setName(rs.getString("name"));
 
                 DishOrder dishOrder = new DishOrder();
-                dishOrder.setDish(dish);
-                dishOrder.setQuantityToOrder(Double.valueOf(rs.getInt("quantitytoorder")));
+                dishOrder.setDish(dishDTO);
+                dishOrder.setQuantityToOrder(rs.getDouble("quantitytoorder"));
                 dishOrder.setPrice(rs.getDouble("price"));
 
                 // Ajoute le dishOrder à l'ordre
@@ -118,7 +119,7 @@ public class OrderDao implements CrudOperation<Order> {
 
             if (rs.next()) {
                 Order order = new Order(
-                        rs.getTimestamp("customerArrivalDatetime").toInstant(),
+                        rs.getTimestamp("customerarrivaldatetime").toInstant(),
                         rs.getDouble("amountDue"),
                         rs.getDouble("amountPaid"),
                         TableNumber.valueOf(rs.getString("tableNumber")),
@@ -148,7 +149,7 @@ public class OrderDao implements CrudOperation<Order> {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                Dish dish = new Dish();
+                DishDTO dish = new DishDTO();
                 dish.setId(rs.getLong("dish_id"));
                 dish.setName(rs.getString("name"));
 

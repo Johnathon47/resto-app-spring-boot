@@ -1,8 +1,8 @@
 package components.repository.dao;
 
-import components.model.Dish;
 import components.model.DishOrder;
 import components.model.Order;
+import components.model.dto.DishDTO;
 import components.repository.crudOperation.CrudOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -38,12 +38,18 @@ public class DishOrderDao implements CrudOperation<DishOrder> {
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
+                DishDTO dishDTO = new DishDTO();
+                dishDTO.setName(resultSet.getString("name"));
+
+                Order order = new Order();
+                order.setId(resultSet.getLong("orderid"));
+
                 DishOrder dishOrder = new DishOrder(
                         resultSet.getLong("id"),
-                        (Dish) resultSet.getObject("name"),
+                        dishDTO,
                         resultSet.getDouble("quantitytoorder"),
                         resultSet.getDouble("price"),
-                        (Order) resultSet.getObject("orderid")
+                        order
                 );
                 dishOrders.add(dishOrder);
             }

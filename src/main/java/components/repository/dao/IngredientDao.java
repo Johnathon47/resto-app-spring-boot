@@ -1,153 +1,111 @@
 package components.repository.dao;
 
 import components.model.Ingredient;
-import components.model.MovementType;
-import components.model.StockMovement;
-import components.model.Unit;
 import components.repository.crudOperation.CrudOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class IngredientDao implements CrudOperation<Ingredient> {
     private final JdbcTemplate jdbcTemplate;
+    private final IngredientPriceDao priceDao;
 
     @Autowired
-    public IngredientDao(JdbcTemplate jdbcTemplate) {
+    public IngredientDao(JdbcTemplate jdbcTemplate, IngredientPriceDao priceDao) {
         this.jdbcTemplate = jdbcTemplate;
+        this.priceDao = priceDao;
     }
 
     @Override
     public List<Ingredient> getAll(int offset, int limit) {
-        List<Ingredient> ingredients = new ArrayList<>();
-        String request =
-                """
-                SELECT id, name, unit_price, unit, update_datetime FROM ingredient OFFSET ? LIMIT ?;
-                """;
-        try(Connection connection = jdbcTemplate.getDataSource().getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(request);) {
-            preparedStatement.setInt(1, offset);
-            preparedStatement.setInt(2, limit);
-            ResultSet resultSet = preparedStatement.executeQuery();
+        String sql = """
+            SELECT id, name
+            FROM ingredient
+            ORDER BY name
+            LIMIT ? OFFSET ?;
+        """;
 
-            while (resultSet.next()) {
-                Ingredient ingredient = new Ingredient(
-                        resultSet.getLong("id"),
-                        resultSet.getString("name"),
-                        resultSet.getBigDecimal("unit_price"),
-                        Unit.valueOf(resultSet.getString("unit")),
-                        resultSet.getTimestamp("update_datetime")
-                );
+        try (Connection connection = jdbcTemplate.getDataSource().getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setInt(1, limit);
+            ps.setInt(2, offset);
+            ResultSet rs = ps.executeQuery();
+
+            List<Ingredient> ingredients = new ArrayList<>();
+            while (rs.next()) {
+                Ingredient ingredient = new Ingredient();
+                long id = rs.getLong("id");
+                ingredient.setId(id);
+                ingredient.setName(rs.getString("name"));
+
+                // Charger les prix depuis ingredient_price
+                ingredient.setPriceHistory(priceDao.findAllForIngredient(id));
+
                 ingredients.add(ingredient);
             }
+
+            return ingredients;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Erreur lors de la récupération des ingrédients", e);
         }
-        return ingredients;
     }
 
     @Override
     public void insert(Ingredient toAddIngredient) {
-    String query =
-                """
-                    INSERT INTO ingredient (id, name, unit_price, unit, update_datetime)
-                    VALUES (?, ?, ?, ?::unit, ?);
-                """;
-    try (PreparedStatement preparedStatement = jdbcTemplate.getDataSource().getConnection().prepareStatement(query)) {
-        preparedStatement.setLong(1, toAddIngredient.getId());
-        preparedStatement.setString(2, toAddIngredient.getName());
-        preparedStatement.setBigDecimal(3, toAddIngredient.getUnitPrice());
-        preparedStatement.setString(4, String.valueOf(toAddIngredient.getUnit()));
-        preparedStatement.setTimestamp(5, toAddIngredient.getUpdateDateTime());
+        String sql = "INSERT INTO ingredient (id, name) VALUES (?, ?)";
 
-        preparedStatement.executeUpdate();
-    } catch (SQLException e) {
-        throw new RuntimeException(e);
-    }
+        try (PreparedStatement ps = jdbcTemplate.getDataSource().getConnection().prepareStatement(sql)) {
+            ps.setLong(1, toAddIngredient.getId());
+            ps.setString(2, toAddIngredient.getName());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de l'insertion de l'ingrédient", e);
+        }
     }
 
     @Override
     public void update(Long id, Ingredient updateIngredient) {
-    String query =
-                """
-                    UPDATE ingredient SET name = ?, unit_price = ?, unit = ?::unit, update_datetime = ? WHERE id = ?;
-                """;
-    try (PreparedStatement preparedStatement = jdbcTemplate.getDataSource().getConnection().prepareStatement(query)) {
-        preparedStatement.setString(1, updateIngredient.getName());
-        preparedStatement.setBigDecimal(2, updateIngredient.getUnitPrice());
-        preparedStatement.setString(3, String.valueOf(updateIngredient.getUnit()));
-        preparedStatement.setTimestamp(4, updateIngredient.getUpdateDateTime());
-        preparedStatement.setLong(5, id);
+        String sql = "UPDATE ingredient SET name = ? WHERE id = ?";
 
-        preparedStatement.executeUpdate();
-    } catch (SQLException e) {
-        throw new RuntimeException(e);
-    }
+        try (PreparedStatement ps = jdbcTemplate.getDataSource().getConnection().prepareStatement(sql)) {
+            ps.setString(1, updateIngredient.getName());
+            ps.setLong(2, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la mise à jour de l'ingrédient", e);
+        }
     }
 
     @Override
     public Ingredient getById(Long id) {
-        String sql =
-                """
-                SELECT i.id AS ingredient_id, i.name AS ingredient_name, i.unit_price AS ingredient_price,
-                       i.unit AS ingredient_unit, i.update_datetime AS ingredient_updated,
-                       sm.id AS sm_id, sm.movement_type, sm.quantity, sm.unit AS sm_unit, sm.movement_date
-                FROM ingredient i
-                LEFT JOIN stock_movement sm ON i.id = sm.ingredient_id
-                WHERE i.id = ?;
-                """;
+        String sql = "SELECT id, name FROM ingredient WHERE id = ?";
 
         try (Connection connection = jdbcTemplate.getDataSource().getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
-            preparedStatement.setLong(1, id);
+            ps.setLong(1, id);
+            ResultSet rs = ps.executeQuery();
 
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                Ingredient ingredient = null;
-                List<StockMovement> movements = new ArrayList<>();
+            if (rs.next()) {
+                Ingredient ingredient = new Ingredient();
+                ingredient.setId(rs.getLong("id"));
+                ingredient.setName(rs.getString("name"));
 
-                while (resultSet.next()) {
-                    if (ingredient == null) {
-                        ingredient = new Ingredient();
-                        ingredient.setId(resultSet.getLong("ingredient_id"));
-                        ingredient.setName(resultSet.getString("ingredient_name"));
-                        ingredient.setUnitPrice(resultSet.getBigDecimal("ingredient_price"));
-                        ingredient.setUnit(Unit.valueOf(resultSet.getString("ingredient_unit")));
-                        ingredient.setUpdateDateTime(resultSet.getTimestamp("ingredient_updated"));
-                        ingredient.setStockMovementList(movements);
-                    }
+                // Charger les prix depuis ingredient_price
+                ingredient.setPriceHistory(priceDao.findAllForIngredient(id));
 
-                    Long smId = resultSet.getLong("sm_id");
-                    if (smId != 0) { // s'il y a bien un mouvement de stock lié
-                        StockMovement stockMovement = new StockMovement();
-                        stockMovement.setId(smId);
-                        stockMovement.setMovementType(MovementType.valueOf(resultSet.getString("movement_type")));
-                        stockMovement.setQuantity(resultSet.getBigDecimal("quantity"));
-                        stockMovement.setUnit(Unit.valueOf(resultSet.getString("sm_unit")));
-                        stockMovement.setMovementDate(resultSet.getTimestamp("movement_date"));
-                        // Ne pas remettre l’ingredient pour éviter la boucle !
-                        stockMovement.setIngredient(null);
-                        stockMovement.setIngredientName(resultSet.getString("ingredient_name"));
-
-                        movements.add(stockMovement);
-                    }
-                }
-
-                return ingredient; // peut être null si non trouvé
+                return ingredient;
             }
+
+            return null;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Erreur lors de la récupération de l'ingrédient par ID", e);
         }
     }
-
-
-
 }

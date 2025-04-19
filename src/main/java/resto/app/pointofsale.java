@@ -6,10 +6,10 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @ComponentScan({"components"})
-public class RestoAppApplication {
+public class pointofsale {
 
 	public static void main(String[] args) {
-		SpringApplication.run(RestoAppApplication.class, args);
+		SpringApplication.run(pointofsale.class, args);
 	}
 
 }

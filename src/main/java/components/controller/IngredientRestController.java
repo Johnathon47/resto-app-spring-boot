@@ -26,7 +26,7 @@ public class IngredientRestController {
         this.ingredientService = ingredientService;
     }
 
-    @GetMapping("/api/ingredients")
+    @GetMapping("/ingredients")
     public ResponseEntity<List<IngredientDto>> getAllIngredients() {
         List<Ingredient> ingredients = ingredientService.getAllIngredient();
 
@@ -67,7 +67,7 @@ public class IngredientRestController {
     }
 
 
-    @GetMapping("/api/ingredients/price")
+    @GetMapping("/ingredients/price")
     public ResponseEntity<?> getAllPriceIngredient(
             @RequestParam(name = "priceMin", required = false) BigDecimal priceMin,
             @RequestParam(name = "priceMax", required = false) BigDecimal priceMax) {
@@ -104,17 +104,17 @@ public class IngredientRestController {
         return ResponseEntity.ok(filteredIngredients);
     }
 
-    @PostMapping("/api/create-ingredient")
+    @PostMapping("/create-ingredient")
     public void insert(@RequestBody Ingredient toAddIngredient) {
         ingredientService.insert(toAddIngredient);
     }
 
-    @PutMapping("/api/update-ingredient/{id}")
+    @PutMapping("/update-ingredient/{id}")
     public void update(@PathVariable Long id, @RequestBody Ingredient updateIngredient) {
         ingredientService.update(id, updateIngredient);
     }
 
-    @GetMapping("/api/ingredient/{id}")
+    @GetMapping("/ingredient/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
         Ingredient ingredient = ingredientService.getById(id);
         if (ingredient == null ) {
@@ -126,7 +126,7 @@ public class IngredientRestController {
         return ResponseEntity.ok(ingredient);
     }
 
-    @GetMapping("/api/ingredient/{id}/availability")
+    @GetMapping("/ingredient/{id}/availability")
     public ResponseEntity<?> getAvailability(
             @PathVariable Long id,
             @RequestParam(name = "at", required = false) String atDateTimeString) {

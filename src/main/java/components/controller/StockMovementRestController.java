@@ -17,7 +17,7 @@ public class StockMovementRestController {
         this.movementService = stockMovementService;
     }
 
-    @GetMapping("/api/stockmovementlist")
+    @GetMapping("/stockmovementlist")
     public List<StockMovement> movementList() {
         return movementService.getAll();
     }

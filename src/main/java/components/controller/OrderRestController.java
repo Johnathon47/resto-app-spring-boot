@@ -18,12 +18,12 @@ public class OrderRestController {
         this.orderService = orderService;
     }
 
-    @GetMapping("/api/orders")
+    @GetMapping("/orders")
     public List<Order> getAll() {
         return orderService.getAll();
     }
 
-    @GetMapping("/api/order/{id}")
+    @GetMapping("/order/{id}")
     public Order getById(@PathVariable Long id) {
         return orderService.getById(id);
     }

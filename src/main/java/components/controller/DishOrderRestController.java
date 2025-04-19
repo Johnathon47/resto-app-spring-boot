@@ -17,7 +17,7 @@ public class DishOrderRestController {
         this.dishOrderService = dishOrderService;
     }
 
-    @GetMapping("/api/dishOrders")
+    @GetMapping("/dishOrders")
     public List<DishOrder> getAll() {
         return dishOrderService.getAllDishOrder();
     }

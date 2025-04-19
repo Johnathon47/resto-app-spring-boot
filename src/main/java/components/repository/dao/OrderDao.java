@@ -2,6 +2,7 @@ package components.repository.dao;
 
 import components.model.DishOrder;
 import components.model.Order;
+import components.model.OrderDishStatus;
 import components.model.TableNumber;
 import components.model.dto.DishDTO;
 import components.repository.crudOperation.CrudOperation;
@@ -138,7 +139,7 @@ public class OrderDao implements CrudOperation<Order> {
     private List<DishOrder> getDishOrdersByOrderId(long orderId, Connection connection) throws SQLException {
         List<DishOrder> dishOrders = new ArrayList<>();
         String query = """
-            SELECT d_o.*, d.name, d.id AS dish_id
+            SELECT d_o.*, d.name, d.id AS dish_id, d_o.status
             FROM dish_order d_o
             JOIN dish d ON d.id = d_o.dish_id
             WHERE orderId = ?
@@ -158,7 +159,8 @@ public class OrderDao implements CrudOperation<Order> {
                         dish,
                         rs.getDouble("quantityToOrder"),
                         rs.getDouble("price"),
-                        null // L'objet Order peut être réinjecté après si besoin
+                        null, // L'objet Order peut être réinjecté après si besoin
+                        OrderDishStatus.valueOf(rs.getString("status"))
                 );
                 dishOrders.add(dishOrder);
             }

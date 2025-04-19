@@ -10,13 +10,15 @@ public class DishOrder {
     private Double quantityToOrder;
     private Double price;
     private Order order;
+    private OrderDishStatus orderDishStatus;
 
-    public DishOrder(Long id, DishDTO dishDTO, Double quantityToOrder,  Double price, Order order) {
+    public DishOrder(Long id, DishDTO dishDTO, Double quantityToOrder,  Double price, Order order, OrderDishStatus orderDishStatus) {
         this.id = id;
         this.dishDTO = dishDTO;
         this.quantityToOrder = quantityToOrder;
         this.price = price;
         this.order = order;
+        this.orderDishStatus = orderDishStatus;
     }
 
     public DishOrder() {
@@ -61,5 +63,17 @@ public class DishOrder {
 
     public void setOrder(Order order) {
         this.order = order;
+    }
+
+    public void setDishDTO(DishDTO dishDTO) {
+        this.dishDTO = dishDTO;
+    }
+
+    public OrderDishStatus getOrderDishStatus() {
+        return orderDishStatus;
+    }
+
+    public void setOrderDishStatus(OrderDishStatus orderDishStatus) {
+        this.orderDishStatus = orderDishStatus;
     }
 }

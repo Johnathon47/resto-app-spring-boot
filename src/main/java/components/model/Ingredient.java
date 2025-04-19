@@ -1,5 +1,7 @@
 package components.model;
 
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -8,6 +10,7 @@ public class Ingredient {
     protected String name;
     private List<IngredientPrice> priceHistory;
     private List<StockMovement> stockMovementList;
+
 
     public Ingredient(Long id, String name) {
         this.id = id;

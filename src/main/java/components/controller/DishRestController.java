@@ -17,7 +17,7 @@ public class DishRestController {
         this.dishService = dishService;
     }
 
-    @GetMapping("/api/dishes")
+    @GetMapping("/dishes")
     public List<Dish> getAllDish(){
         return dishService.getAllDish();
     }

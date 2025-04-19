@@ -2,6 +2,7 @@ package components.repository.dao;
 
 import components.model.DishOrder;
 import components.model.Order;
+import components.model.OrderDishStatus;
 import components.model.dto.DishDTO;
 import components.repository.crudOperation.CrudOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ public class DishOrderDao implements CrudOperation<DishOrder> {
 
     @Override
     public List<DishOrder> getAll(int offset, int limit) {
-        String query = "SELECT dish_order.id, dish.name AS name, quantitytoorder, price, orderid FROM dish_order INNER JOIN dish ON dish_order.dish_id = dish.id GROUP BY dish_order.id, dish.name LIMIT ? OFFSET ?";
+        String query = "SELECT dish_order.id, dish.name AS name, quantitytoorder, price, orderid, status FROM dish_order INNER JOIN dish ON dish_order.dish_id = dish.id GROUP BY dish_order.id, dish.name LIMIT ? OFFSET ?";
         List<DishOrder> dishOrders = new ArrayList<>();
 
         try (Connection connection = jdbcTemplate.getDataSource().getConnection();
@@ -49,7 +50,8 @@ public class DishOrderDao implements CrudOperation<DishOrder> {
                         dishDTO,
                         resultSet.getDouble("quantitytoorder"),
                         resultSet.getDouble("price"),
-                        order
+                        order,
+                        OrderDishStatus.valueOf(resultSet.getString("status"))
                 );
                 dishOrders.add(dishOrder);
             }
